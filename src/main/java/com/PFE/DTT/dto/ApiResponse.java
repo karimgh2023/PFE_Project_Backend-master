@@ -1,23 +1,30 @@
 package com.PFE.DTT.dto;
 
-public class ApiResponse<T> {
-    private String status;
+public class ApiResponse {
+    private boolean success;
     private String message;
-    private T data;
+    private Object data;
 
-    public ApiResponse(String status, String message, T data) {
-        this.status = status;
+    // Constructor for success/failure with message
+    public ApiResponse(boolean success, String message) {
+        this.success = success;
+        this.message = message;
+    }
+
+    // Constructor with data
+    public ApiResponse(boolean success, String message, Object data) {
+        this.success = success;
         this.message = message;
         this.data = data;
     }
 
     // Getters and Setters
-    public String getStatus() {
-        return status;
+    public boolean isSuccess() {
+        return success;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setSuccess(boolean success) {
+        this.success = success;
     }
 
     public String getMessage() {
@@ -28,11 +35,11 @@ public class ApiResponse<T> {
         this.message = message;
     }
 
-    public T getData() {
+    public Object getData() {
         return data;
     }
 
-    public void setData(T data) {
+    public void setData(Object data) {
         this.data = data;
     }
 }

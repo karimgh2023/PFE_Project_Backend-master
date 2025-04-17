@@ -2,8 +2,7 @@ package com.PFE.DTT.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.Objects;
 
 @Entity
@@ -12,7 +11,7 @@ public class Report {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "protocol_id", nullable = false)
@@ -21,9 +20,6 @@ public class Report {
     @ManyToOne
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
-
-    @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ReportUser> reportUsers = new ArrayList<>();
 
     @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StandardReportEntry> reportEntries; // Liste des entrées (critères)
@@ -45,17 +41,24 @@ public class Report {
     private String serviceSeg;
     private String businessUnit;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "assignedUsers",
+            joinColumns = @JoinColumn(name = "report_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> assignedUsers = new HashSet<>();
+
     // Default Constructor (Required for JPA)
     public Report() {}
 
     // Constructor with all fields (except ID, auto-generated)
-    public Report(Protocol protocol, User createdBy, List<ReportUser> reportUsers, List<StandardReportEntry> reportEntries,
+    public Report(Protocol protocol, User createdBy, List<StandardReportEntry> reportEntries,
                   MaintenanceForm maintenanceForm, boolean isCompleted, String type, String serialNumber,
                   String equipmentDescription, String designation, String manufacturer, String immobilization,
                   String serviceSeg, String businessUnit) {
         this.protocol = protocol;
         this.createdBy = createdBy;
-        this.reportUsers = reportUsers;
         this.reportEntries = reportEntries;
         this.createdAt = LocalDateTime.now();
         this.maintenanceForm = maintenanceForm;
@@ -71,12 +74,20 @@ public class Report {
     }
 
     // Getters & Setters
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public Set<User> getAssignedUsers() {
+        return assignedUsers;
+    }
+
+    public void setAssignedUsers(Set<User> assignedUsers) {
+        this.assignedUsers = assignedUsers;
     }
 
     public Protocol getProtocol() {
@@ -93,14 +104,6 @@ public class Report {
 
     public void setCreatedBy(User createdBy) {
         this.createdBy = createdBy;
-    }
-
-    public List<ReportUser> getReportUsers() {
-        return reportUsers;
-    }
-
-    public void setReportUsers(List<ReportUser> reportUsers) {
-        this.reportUsers = reportUsers;
     }
 
     public List<StandardReportEntry> getReportEntries() {
@@ -130,6 +133,10 @@ public class Report {
     }
 
     public boolean isCompleted() {
+        return isCompleted;
+    }
+
+    public boolean getIsCompleted() {
         return isCompleted;
     }
 
@@ -201,8 +208,6 @@ public class Report {
         this.businessUnit = businessUnit;
     }
 
-
-
     // toString() method for debugging
     @Override
     public String toString() {
@@ -220,7 +225,7 @@ public class Report {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Report that)) return false;
-        return id == that.id;
+        return Objects.equals(id, that.id);
     }
 
     @Override

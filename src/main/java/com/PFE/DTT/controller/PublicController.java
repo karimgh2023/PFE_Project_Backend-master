@@ -3,8 +3,10 @@ package com.PFE.DTT.controller;
 import com.PFE.DTT.dto.DepartmentRequest;
 import com.PFE.DTT.model.Department;
 import com.PFE.DTT.model.Plant;
+import com.PFE.DTT.model.User;
 import com.PFE.DTT.repository.DepartmentRepository;
 import com.PFE.DTT.repository.PlantRepository;
+import com.PFE.DTT.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,9 @@ public class PublicController {
 
     @Autowired
     private PlantRepository plantRepository;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     // ✅ Get all departments (no auth required)
     @GetMapping("/departments")
@@ -98,5 +103,39 @@ public class PublicController {
     public ResponseEntity<List<Plant>> getAllPlants() {
         List<Plant> plants = plantRepository.findAll();
         return ResponseEntity.ok(plants);
+    }
+    
+    // ✅ Get all non-admin users
+    @GetMapping("/non-admins")
+    public ResponseEntity<List<User>> getAllNonAdminUsers() {
+        List<User> users = userRepository.findByRoleNot(User.Role.ADMIN);
+
+        // Optionally, remove passwords and verification code before returning
+        users.forEach(user -> {
+            user.setPassword(null);
+            user.setVerificationCode(null);
+        });
+
+        return ResponseEntity.ok(users);
+    }
+
+    // ✅ Get users by department ID
+    @GetMapping("/users/department/{departmentId}")
+    public ResponseEntity<?> getUsersByDepartment(@PathVariable int departmentId) {
+        Optional<Department> department = departmentRepository.findById(departmentId);
+        
+        if (department.isEmpty()) {
+            return ResponseEntity.badRequest().body("Department not found");
+        }
+        
+        List<User> users = userRepository.findByDepartment(department.get());
+        
+        // Remove sensitive information before returning
+        users.forEach(user -> {
+            user.setPassword(null);
+            user.setVerificationCode(null);
+        });
+        
+        return ResponseEntity.ok(users);
     }
 }

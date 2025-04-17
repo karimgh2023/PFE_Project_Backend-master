@@ -30,6 +30,9 @@ public class SpecificReportEntry {
     @Column(nullable = false)
     private String successControl;
 
+    @Column(nullable = false)
+    private boolean isUpdated = false;
+
     // Relationship with Report (Composition)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "report_id", nullable = false)
@@ -118,6 +121,13 @@ public class SpecificReportEntry {
         this.specificControlCriteria = criteria;
     }
 
+    public boolean isUpdated() {
+        return isUpdated;
+    }
+
+    public void setUpdated(boolean updated) {
+        isUpdated = updated;
+    }
 
     @Override
     public String toString() {

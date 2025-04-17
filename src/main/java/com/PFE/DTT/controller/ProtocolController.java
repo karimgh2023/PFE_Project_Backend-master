@@ -1,34 +1,39 @@
 package com.PFE.DTT.controller;
 
 import com.PFE.DTT.dto.ProtocolDTO;
-import com.PFE.DTT.model.Protocol;
-import com.PFE.DTT.model.ProtocolType;
-import com.PFE.DTT.model.User;
+import com.PFE.DTT.model.*;
+import com.PFE.DTT.repository.DepartmentRepository;
 import com.PFE.DTT.repository.ProtocolRepository;
+import com.PFE.DTT.repository.SpecificControlCriteriaRepository;
 import com.PFE.DTT.repository.UserRepository;
-import com.PFE.DTT.security.JwtUtil; // ✅ Utility class to extract user ID from token
+import com.PFE.DTT.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/protocols")  // Update this to include /api prefix
+@RequestMapping("/api/protocols")
 public class ProtocolController {
 
     @Autowired
     private ProtocolRepository protocolRepository;
 
-
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private JwtUtil jwtUtil; // ✅ Inject JWT Utility
+    private DepartmentRepository departmentRepository;
+
+    @Autowired
+    private SpecificControlCriteriaRepository specificControlCriteriaRepository;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     // Get all protocols - available to all users
     @GetMapping
@@ -39,21 +44,25 @@ public class ProtocolController {
                 .collect(Collectors.toList());
     }
 
-    // ✅ Create a new Protocol (Only Admins)
+    // Get all protocol types
+    @GetMapping("/types")
+    public ResponseEntity<List<String>> getAllProtocolTypes() {
+        // Extract all protocol types from enum
+        List<String> protocolTypes = Arrays.stream(ProtocolType.values())
+                .map(Enum::name)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(protocolTypes);
+    }
+
+    // ✅ Create a new Protocol (For authenticated users)
     @PostMapping("/create")
     public ResponseEntity<?> createProtocol(
             @RequestBody ProtocolRequest requestBody,
-            HttpServletRequest request) {
+            @AuthenticationPrincipal User user) {
 
-        String token = request.getHeader("Authorization");
-        if (token == null || !token.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).body("Unauthorized: Missing or invalid token.");
-        }
-
-        int userId = jwtUtil.extractUserId(token.substring(7));
-        Optional<User> user = userRepository.findById((long) userId);
-        if (user.isEmpty() || user.get().getRole() != User.Role.ADMIN) {
-            return ResponseEntity.status(403).body("Only admins can create protocols.");
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized: User not authenticated.");
         }
 
         ProtocolType protocolType;
@@ -63,20 +72,72 @@ public class ProtocolController {
             return ResponseEntity.badRequest().body("Invalid protocol type. Allowed values: HOMOLOGATION, REQUALIFICATION.");
         }
 
-        Protocol protocol = new Protocol(requestBody.getName(), protocolType, user.get());
-        protocolRepository.save(protocol);
+        // Create and save the protocol
+        Protocol protocol = new Protocol(requestBody.getName(), protocolType, user);
+        Protocol savedProtocol = protocolRepository.save(protocol);
 
-        return ResponseEntity.ok("Protocol created successfully.");
+        // Process specific control criteria if provided
+        if (requestBody.getCriteria() != null && !requestBody.getCriteria().isEmpty()) {
+            for (CriteriaRequest criteriaRequest : requestBody.getCriteria()) {
+                // Validate and fetch departments
+                Set<Department> implementationDepartments = new HashSet<>(
+                        departmentRepository.findAllById(criteriaRequest.getImplementationDepartmentIds()));
+                
+                Set<Department> checkDepartments = new HashSet<>(
+                        departmentRepository.findAllById(criteriaRequest.getCheckDepartmentIds()));
+                
+                if (implementationDepartments.isEmpty() || checkDepartments.isEmpty()) {
+                    continue; // Skip invalid criteria
+                }
+                
+                // Create specific control criteria
+                SpecificControlCriteria criteria = new SpecificControlCriteria(
+                        criteriaRequest.getDescription(),
+                        implementationDepartments,
+                        checkDepartments,
+                        savedProtocol
+                );
+                specificControlCriteriaRepository.save(criteria);
+            }
+        }
+
+        return ResponseEntity.ok(Map.of(
+            "message", "Protocol created successfully.",
+            "protocolId", savedProtocol.getId()
+        ));
     }
 
     static class ProtocolRequest {
         private String name;
         private String protocolType;
+        private List<CriteriaRequest> criteria;
 
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
 
         public String getProtocolType() { return protocolType; }
         public void setProtocolType(String protocolType) { this.protocolType = protocolType; }
+        
+        public List<CriteriaRequest> getCriteria() { return criteria; }
+        public void setCriteria(List<CriteriaRequest> criteria) { this.criteria = criteria; }
+    }
+    
+    static class CriteriaRequest {
+        private String description;
+        private List<Integer> implementationDepartmentIds;
+        private List<Integer> checkDepartmentIds;
+        
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        
+        public List<Integer> getImplementationDepartmentIds() { return implementationDepartmentIds; }
+        public void setImplementationDepartmentIds(List<Integer> implementationDepartmentIds) { 
+            this.implementationDepartmentIds = implementationDepartmentIds; 
+        }
+        
+        public List<Integer> getCheckDepartmentIds() { return checkDepartmentIds; }
+        public void setCheckDepartmentIds(List<Integer> checkDepartmentIds) { 
+            this.checkDepartmentIds = checkDepartmentIds; 
+        }
     }
 }

@@ -30,11 +30,13 @@ public class StandardReportEntry {
     @Column(nullable = false)
     private String successControl;
 
+    @Column(nullable = false)
+    private boolean isUpdated = false;
+
     // Relationship with Report (Composition)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "report_id", nullable = false)
     private Report report;
-
 
     // Relationship with StandardControlCriteria (null if SpecificControlCriteria is set)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -53,8 +55,6 @@ public class StandardReportEntry {
         this.successControl = successControl;
         this.report = report;
     }
-
-
 
     // Getters and Setters
     public int getId() {
@@ -117,14 +117,17 @@ public class StandardReportEntry {
         this.standardControlCriteria = criteria;
     }
 
-
-
-
-
     public StandardControlCriteria getStandardControlCriteria() {
         return standardControlCriteria;
     }
 
+    public boolean isUpdated() {
+        return isUpdated;
+    }
+
+    public void setUpdated(boolean updated) {
+        isUpdated = updated;
+    }
 
     @Override
     public String toString() {

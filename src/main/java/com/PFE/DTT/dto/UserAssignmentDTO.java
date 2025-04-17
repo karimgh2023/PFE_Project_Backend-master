@@ -21,7 +21,7 @@ public class UserAssignmentDTO {
         this.departmentId = departmentId;
     }
 
-    public int getUserId() {
+    public long getUserId() {
         return userId;
     }
 

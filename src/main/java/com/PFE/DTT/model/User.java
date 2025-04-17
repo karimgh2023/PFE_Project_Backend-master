@@ -15,7 +15,6 @@ public class User {
     private String email;
 
     @Column(nullable = false)
-    @JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -50,12 +49,23 @@ public class User {
     @JoinColumn(name = "plant_id", nullable = false)
     private Plant plant;
 
+    @JsonIgnore
+    @ManyToMany(mappedBy = "assignedUsers")
+    private Set<Report> reportsAssigned;
+
+    public Set<Report> getReportsAssigned() {
+        return reportsAssigned;
+    }
+
+    public void setReportsAssigned(Set<Report> reportsAssigned) {
+        this.reportsAssigned = reportsAssigned;
+    }
+
     // Define Role Enum
     public enum Role {
         ADMIN,
         DEPARTMENT_MANAGER,
         EMPLOYEE
-
     }
 
     // Default Constructor (JPA Requirement)

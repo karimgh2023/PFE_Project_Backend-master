@@ -1,7 +1,6 @@
 package com.PFE.DTT.model;
 
 import jakarta.persistence.*;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -30,7 +29,6 @@ public class Protocol {
     private User createdBy;
 
     @OneToMany(mappedBy = "protocol", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonIgnore
     private List<SpecificControlCriteria> specificControlCriteriaList = new ArrayList<>();
 
     public Protocol() {}
