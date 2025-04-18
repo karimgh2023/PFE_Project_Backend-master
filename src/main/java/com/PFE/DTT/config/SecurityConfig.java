@@ -46,7 +46,15 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> {
                     // Public endpoints that don't require authentication
-                    auth.requestMatchers("/api/auth/**", "/api/public/**", "/api/protocols/**").permitAll()
+                    auth.requestMatchers("/api/auth/**", "/api/public/**").permitAll()
+                        // Protocol base endpoints are public
+                        .requestMatchers("/api/protocols", "/api/protocols/types").permitAll()
+                        // Protocol criteria endpoints require authentication
+                        .requestMatchers("/api/protocols/*/criteria/**", 
+                                         "/api/protocols/*/standard-criteria/**", 
+                                         "/api/protocols/*/specific-criteria/**").authenticated()
+                        // Protocol creation and modification require authentication
+                        .requestMatchers("/api/protocols/create", "/api/protocols/{id}").authenticated()
                         // Admin endpoints require ADMIN role
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         // Report endpoints - require authentication but any role

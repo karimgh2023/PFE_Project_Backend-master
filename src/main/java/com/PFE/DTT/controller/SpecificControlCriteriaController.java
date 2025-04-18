@@ -44,9 +44,9 @@ public class SpecificControlCriteriaController {
         if (token == null || !token.startsWith("Bearer ")) {
             return ResponseEntity.status(401).body("Unauthorized: Missing or invalid token.");
         }
-        int userId = jwtUtil.extractUserId(token.substring(7));
+        Long userId = jwtUtil.extractUserId(token.substring(7));
 
-        Optional<User> user = userRepository.findById((long) userId);
+        Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
             return ResponseEntity.status(403).body("User not found.");
         }
@@ -84,7 +84,7 @@ public class SpecificControlCriteriaController {
         private String description;
         private List<Integer> implementationResponsibleIds;
         private List<Integer> checkResponsibleIds;
-        private int protocolId;
+        private Long protocolId;
 
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
@@ -95,7 +95,7 @@ public class SpecificControlCriteriaController {
         public List<Integer> getCheckResponsibleIds() { return checkResponsibleIds; }
         public void setCheckResponsibleIds(List<Integer> checkResponsibleIds) { this.checkResponsibleIds = checkResponsibleIds; }
 
-        public int getProtocolId() { return protocolId; }
-        public void setProtocolId(int protocolId) { this.protocolId = protocolId; }
+        public Long getProtocolId() { return protocolId; }
+        public void setProtocolId(Long protocolId) { this.protocolId = protocolId; }
     }
 }

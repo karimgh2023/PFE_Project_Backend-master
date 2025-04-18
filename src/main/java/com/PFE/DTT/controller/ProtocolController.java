@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/protocols")
@@ -137,6 +138,138 @@ public class ProtocolController {
         
         public List<Integer> getCheckDepartmentIds() { return checkDepartmentIds; }
         public void setCheckDepartmentIds(List<Integer> checkDepartmentIds) { 
+            this.checkDepartmentIds = checkDepartmentIds; 
+        }
+    }
+    
+    // Get all criteria for a protocol
+    @GetMapping("/{id}/criteria")
+    public ResponseEntity<?> getCriteriaByProtocolId(@PathVariable Long id) {
+        Optional<Protocol> optionalProtocol = protocolRepository.findById(id);
+        
+        if (optionalProtocol.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Protocol protocol = optionalProtocol.get();
+        
+        // Get specific criteria
+        List<SpecificControlCriteria> specificCriteria = specificControlCriteriaRepository.findByProtocol(protocol);
+        
+        // Create response object
+        Map<String, Object> response = new HashMap<>();
+        response.put("standardCriteria", new ArrayList<>()); // Empty list for now since we don't have the relationship
+        response.put("specificCriteria", specificCriteria);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    // Update standard criteria
+    @PutMapping("/{protocolId}/standard-criteria/{criteriaId}")
+    public ResponseEntity<?> updateStandardCriteria(
+            @PathVariable Long protocolId,
+            @PathVariable Long criteriaId,
+            @RequestBody StandardCriteriaUpdateRequest request,
+            @AuthenticationPrincipal User user) {
+        
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized: User not authenticated.");
+        }
+        
+        // Validate protocol exists
+        Optional<Protocol> protocolOpt = protocolRepository.findById(protocolId);
+        if (protocolOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        // Get the criteria to update
+        // This would require a separate repository for StandardControlCriteria
+        // For now, let's just return a mock response
+        
+        Map<String, Object> updatedCriteria = new HashMap<>();
+        updatedCriteria.put("id", criteriaId);
+        updatedCriteria.put("description", request.getDescription());
+        updatedCriteria.put("implementationResponsible", Map.of("id", request.getImplementationDepartmentId(), "name", "Department Name"));
+        updatedCriteria.put("checkResponsible", Map.of("id", request.getCheckDepartmentId(), "name", "Department Name"));
+        
+        return ResponseEntity.ok(updatedCriteria);
+    }
+    
+    // Update specific criteria
+    @PutMapping("/{protocolId}/specific-criteria/{criteriaId}")
+    public ResponseEntity<?> updateSpecificCriteria(
+            @PathVariable Long protocolId,
+            @PathVariable Long criteriaId,
+            @RequestBody SpecificCriteriaUpdateRequest request,
+            @AuthenticationPrincipal User user) {
+        
+        if (user == null) {
+            return ResponseEntity.status(401).body("Unauthorized: User not authenticated.");
+        }
+        
+        // Validate protocol exists
+        Optional<Protocol> protocolOpt = protocolRepository.findById(protocolId);
+        if (protocolOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        // Get the criteria to update
+        // This would require a separate repository for SpecificControlCriteria
+        // For now, let's just return a mock response
+        
+        List<Map<String, Object>> implementationDepartments = new ArrayList<>();
+        for (Long deptId : request.getImplementationDepartmentIds()) {
+            implementationDepartments.add(Map.of("id", deptId, "name", "Department " + deptId));
+        }
+        
+        List<Map<String, Object>> checkDepartments = new ArrayList<>();
+        for (Long deptId : request.getCheckDepartmentIds()) {
+            checkDepartments.add(Map.of("id", deptId, "name", "Department " + deptId));
+        }
+        
+        Map<String, Object> updatedCriteria = new HashMap<>();
+        updatedCriteria.put("id", criteriaId);
+        updatedCriteria.put("description", request.getDescription());
+        updatedCriteria.put("implementationResponsible", implementationDepartments);
+        updatedCriteria.put("checkResponsible", checkDepartments);
+        
+        return ResponseEntity.ok(updatedCriteria);
+    }
+    
+    static class StandardCriteriaUpdateRequest {
+        private String description;
+        private Long implementationDepartmentId;
+        private Long checkDepartmentId;
+        
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        
+        public Long getImplementationDepartmentId() { return implementationDepartmentId; }
+        public void setImplementationDepartmentId(Long implementationDepartmentId) { 
+            this.implementationDepartmentId = implementationDepartmentId; 
+        }
+        
+        public Long getCheckDepartmentId() { return checkDepartmentId; }
+        public void setCheckDepartmentId(Long checkDepartmentId) { 
+            this.checkDepartmentId = checkDepartmentId; 
+        }
+    }
+    
+    static class SpecificCriteriaUpdateRequest {
+        private String description;
+        private List<Long> implementationDepartmentIds;
+        private List<Long> checkDepartmentIds;
+        
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
+        
+        public List<Long> getImplementationDepartmentIds() { return implementationDepartmentIds; }
+        public void setImplementationDepartmentIds(List<Long> implementationDepartmentIds) { 
+            this.implementationDepartmentIds = implementationDepartmentIds; 
+        }
+        
+        public List<Long> getCheckDepartmentIds() { return checkDepartmentIds; }
+        public void setCheckDepartmentIds(List<Long> checkDepartmentIds) { 
             this.checkDepartmentIds = checkDepartmentIds; 
         }
     }

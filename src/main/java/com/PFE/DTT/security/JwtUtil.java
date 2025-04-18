@@ -18,12 +18,12 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    public int extractUserId(String token) {
+    public Long extractUserId(String token) {
         Claims claims = extractClaims(token);
         if (claims.get("userId") == null) {
             throw new RuntimeException("User ID not found in JWT");
         }
-        return Integer.parseInt(claims.get("userId").toString());
+        return Long.parseLong(claims.get("userId").toString());
     }
 
     public String generateToken(User user) {
