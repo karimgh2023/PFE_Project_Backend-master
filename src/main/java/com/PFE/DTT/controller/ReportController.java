@@ -154,7 +154,7 @@ public class ReportController {
                     .body(new ApiResponse(false, "Only department managers can create reports"));
         }
 
-        Optional<Protocol> optionalProtocol = protocolRepository.findById(Long.valueOf(request.getProtocolId()));
+        Optional<Protocol> optionalProtocol = protocolRepository.findById(request.getProtocolId());
         if (optionalProtocol.isEmpty()) {
             logger.warn("Invalid protocol ID: {}", request.getProtocolId());
             return ResponseEntity.badRequest().body(new ApiResponse(false, "Invalid protocol ID"));
@@ -174,7 +174,7 @@ public class ReportController {
         }
 
         // Validate user assignments
-        Map<Integer, Integer> departmentToUserMap = new HashMap<>();
+        Map<Integer, Long> departmentToUserMap = new HashMap<>();
         for (UserAssignmentDTO ua : request.getAssignedUsers()) {
             departmentToUserMap.put(ua.getDepartmentId(), ua.getUserId());
         }
@@ -205,7 +205,7 @@ public class ReportController {
             // Use a regular loop instead of lambda to avoid 'effectively final' issue
             Set<User> assignedUsers = new HashSet<>();
             for (UserAssignmentDTO ua : request.getAssignedUsers()) {
-                userRepository.findById(Long.valueOf(ua.getUserId())).ifPresent(assignedUsers::add);
+                userRepository.findById(ua.getUserId()).ifPresent(assignedUsers::add);
             }
             report.setAssignedUsers(assignedUsers);
 

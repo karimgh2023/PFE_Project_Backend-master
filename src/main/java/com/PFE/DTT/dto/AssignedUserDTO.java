@@ -4,7 +4,7 @@ import com.PFE.DTT.model.Department;
 import com.PFE.DTT.model.Plant;
 
 public class AssignedUserDTO {
-    private Long id;
+    private long id;
     private String firstName;
     private String lastName;
     private String email;
@@ -12,9 +12,10 @@ public class AssignedUserDTO {
     private Department department;
     private Plant plant;
 
-    // Constructor
-    public AssignedUserDTO(Long id, String firstName, String lastName, String email, 
-                        String profilePhoto, Department department, Plant plant) {
+    public AssignedUserDTO() {
+    }
+
+    public AssignedUserDTO(long id, String firstName, String lastName, String email, String profilePhoto, Department department, Plant plant) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -24,12 +25,11 @@ public class AssignedUserDTO {
         this.plant = plant;
     }
 
-    // Getters and Setters
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(long id) {
         this.id = id;
     }
 

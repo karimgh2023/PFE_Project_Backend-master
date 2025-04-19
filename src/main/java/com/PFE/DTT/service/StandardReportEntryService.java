@@ -28,19 +28,19 @@ public class StandardReportEntryService {
                     dto.setCriteriaDescription(entry.getStandardControlCriteria().getDescription());
                     dto.setCheckResponsible(entry.getStandardControlCriteria().getCheckResponsible());
                     dto.setImplementationResponsible(entry.getStandardControlCriteria().getImplementationResponsible());
-                    dto.setImplemented(entry.isImplemented());
+                    dto.setImplemented(entry.getImplemented());
                     dto.setAction(entry.getAction());
                     dto.setResponsableAction(entry.getResponsableAction());
                     dto.setDeadline(entry.getDeadline());
                     dto.setSuccessControl(entry.getSuccessControl());
-                    dto.setUpdated(entry.getIsUpdated());
+                    dto.setUpdated(entry.isUpdated());
 
                     boolean isAssigned = entry.getReport().getAssignedUsers().stream()
                             .anyMatch(u -> u.getId().equals(user.getId()));
                     boolean isCheckResponsible = entry.getStandardControlCriteria().getCheckResponsible().getId() == user.getDepartment().getId();
                     boolean isCreator = entry.getReport().getCreatedBy().getId().equals(user.getId());
 
-                    dto.setEditable(!entry.getIsUpdated() && ((isAssigned && isCheckResponsible) || isCreator));
+                    dto.setEditable(!entry.isUpdated() && ((isAssigned && isCheckResponsible) || isCreator));
 
                     return dto;
                 })
@@ -48,17 +48,17 @@ public class StandardReportEntryService {
     }
 
 
-    public String updateEntry(int entryId, StandardReportEntryDTO dto, User user) {
+    public String updateEntry(Long entryId, StandardReportEntryDTO dto, User user) {
         Optional<StandardReportEntry> opt = repository.findById(entryId);
         if (opt.isEmpty()) return "Entry not found";
 
         StandardReportEntry entry = opt.get();
 
-        if (entry.getIsUpdated()) return "Entry already updated";
+        if (entry.isUpdated()) return "Entry already updated";
 
         boolean isAssigned = entry.getReport().getAssignedUsers().stream()
                 .anyMatch(u -> u.getId().equals(user.getId()));
-        boolean isCorrectDept = entry.getStandardControlCriteria().getCheckResponsible().getId() == (user.getDepartment().getId());
+        boolean isCorrectDept = entry.getStandardControlCriteria().getCheckResponsible().getId() == user.getDepartment().getId();
         boolean isCreator = entry.getReport().getCreatedBy().getId().equals(user.getId());
 
         if (!(isAssigned && isCorrectDept) && !isCreator) return "Unauthorized";

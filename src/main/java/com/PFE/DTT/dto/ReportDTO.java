@@ -17,13 +17,14 @@ public class ReportDTO {
     private LocalDateTime createdAt;
     private User createdBy;
     private Set<AssignedUserDTO> assignedUsers;
-    private boolean isCompleted;
 
-    // Constructor
+    public ReportDTO() {
+    }
+
     public ReportDTO(Long id, String type, String serialNumber, String equipmentDescription,
-                   String designation, String manufacturer, String immobilization,
-                   String serviceSeg, String businessUnit, LocalDateTime createdAt,
-                   User createdBy, Set<AssignedUserDTO> assignedUsers) {
+                     String designation, String manufacturer, String immobilization,
+                     String serviceSeg, String businessUnit, LocalDateTime createdAt,
+                     User createdBy, Set<AssignedUserDTO> assignedUsers) {
         this.id = id;
         this.type = type;
         this.serialNumber = serialNumber;
@@ -38,7 +39,6 @@ public class ReportDTO {
         this.assignedUsers = assignedUsers;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -133,13 +133,5 @@ public class ReportDTO {
 
     public void setAssignedUsers(Set<AssignedUserDTO> assignedUsers) {
         this.assignedUsers = assignedUsers;
-    }
-
-    public boolean isCompleted() {
-        return isCompleted;
-    }
-
-    public void setCompleted(boolean completed) {
-        isCompleted = completed;
     }
 } 

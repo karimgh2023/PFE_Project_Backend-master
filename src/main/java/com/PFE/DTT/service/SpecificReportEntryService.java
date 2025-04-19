@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -42,7 +43,7 @@ public class SpecificReportEntryService {
 
                     boolean isAssigned = entry.getReport().getAssignedUsers().contains(user);
                     boolean isCheckResponsible = entry.getSpecificControlCriteria().getCheckResponsibles().stream()
-                            .anyMatch(dep -> dep.getId() == (user.getDepartment().getId()));
+                            .anyMatch(dep -> dep.getId() == user.getDepartment().getId());
                     boolean isCreator = entry.getReport().getCreatedBy().getId().equals(user.getId());
                     boolean isEditable = !entry.isUpdated() && (isCreator || isAssigned) && isCheckResponsible;
                     dto.setEditable(isEditable);
@@ -52,14 +53,16 @@ public class SpecificReportEntryService {
                 .collect(Collectors.toList());
     }
 
-    public String updateEntry(int entryId, SpecificReportEntryDTO req, User user) {
-        SpecificReportEntry entry = repository.findById(entryId).orElse(null);
-        if (entry == null) return "Entry not found";
+    public String updateEntry(Long entryId, SpecificReportEntryDTO req, User user) {
+        Optional<SpecificReportEntry> optEntry = repository.findById(entryId);
+        if (optEntry.isEmpty()) return "Entry not found";
+        
+        SpecificReportEntry entry = optEntry.get();
         if (entry.isUpdated()) return "This entry is already updated";
 
         boolean isAssigned = entry.getReport().getAssignedUsers().contains(user);
         boolean isCheckResponsible = entry.getSpecificControlCriteria().getCheckResponsibles().stream()
-                .anyMatch(dep -> dep.getId() == (user.getDepartment().getId()));
+                .anyMatch(dep -> dep.getId() == user.getDepartment().getId());
         boolean isCreator = entry.getReport().getCreatedBy().getId().equals(user.getId());
 
         if (!(isAssigned || isCreator) || !isCheckResponsible) return "Unauthorized";

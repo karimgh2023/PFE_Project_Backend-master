@@ -7,7 +7,7 @@ public class ReportCreationRequest {
     private String title;
     private String description;
     private LocalDateTime scheduledDate;
-    private int protocolId;
+    private Long protocolId;
     private String type;
     private String serialNumber;
     private String equipmentDescription;
@@ -44,11 +44,11 @@ public class ReportCreationRequest {
         this.scheduledDate = scheduledDate;
     }
 
-    public int getProtocolId() {
+    public Long getProtocolId() {
         return protocolId;
     }
 
-    public void setProtocolId(int protocolId) {
+    public void setProtocolId(Long protocolId) {
         this.protocolId = protocolId;
     }
 
